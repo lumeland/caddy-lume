@@ -10,24 +10,21 @@ import (
 )
 
 type UpstreamProcess struct {
-	cmd              *exec.Cmd
-	directory        string
-	command          string
-	port             int
-	startupDelay     time.Duration
-	terminationDelay time.Duration
-	idleTimeout      time.Duration
-	lastActivity     time.Time
-	mu               sync.Mutex
+	cmd          *exec.Cmd
+	directory    string
+	location     string
+	port         int
+	idleTimeout  time.Duration
+	lastActivity time.Time
+	mu           sync.Mutex
 }
 
-func NewUpstreamProcess(directory string, task string) *UpstreamProcess {
+func NewUpstreamProcess(directory string, location string) *UpstreamProcess {
 	return &UpstreamProcess{
-		directory:        directory,
-		startupDelay:     time.Duration(time.Second * 5),
-		terminationDelay: time.Duration(time.Second * 2),
-		idleTimeout:      time.Duration(time.Hour * 2),
-		lastActivity:     time.Now(),
+		directory:    directory,
+		location:     location,
+		idleTimeout:  time.Duration(time.Hour * 2),
+		lastActivity: time.Now(),
 	}
 }
 
@@ -52,12 +49,19 @@ func (u *UpstreamProcess) Start() error {
 		return nil
 	}
 
+	deno, err := exec.LookPath("deno")
+
+	if err != nil {
+		return err
+	}
+
 	// Run `deno install` to download the dependencies
-	cmd := exec.Command("sh", "-c", "deno install")
+	cmd := exec.Command(deno, "install")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = u.directory
-	err := cmd.Start()
+	cmd.Env = os.Environ()
+	err = cmd.Start()
 	if err != nil {
 		return err
 	}
@@ -71,13 +75,32 @@ func (u *UpstreamProcess) Start() error {
 	u.port = port
 
 	// Start the command
-	u.cmd = u.createCommand()
+	u.cmd = exec.Command(
+		deno,
+		"task",
+		"lume",
+		"--serve",
+		"--hostname=localhost",
+		fmt.Sprintf("--port=%d", u.port),
+		fmt.Sprintf("--location=%s", u.location),
+	)
+	u.cmd.Stdout = os.Stdout
+	u.cmd.Stderr = os.Stderr
+	u.cmd.Dir = u.directory
+	u.cmd.Env = os.Environ()
+	u.cmd.Env = append(cmd.Env, "LUME_PROXIED=true")
+
 	err = u.cmd.Start()
 	if err != nil {
 		return err
 	}
-	time.Sleep(u.startupDelay)
 	u.LogActivity()
+
+	// Wait to finish the process
+	go func() {
+		u.cmd.Wait()
+		u.cmd = nil
+	}()
 
 	// Watch for idle timeout.
 	go func() {
@@ -105,21 +128,13 @@ func (u *UpstreamProcess) Stop() {
 	}
 
 	u.cmd.Process.Signal(os.Interrupt)
-	time.Sleep(u.terminationDelay)
+	time.Sleep(time.Duration(time.Second))
 
 	if u.IsRunning() {
+		u.cmd.Process.Release()
 		u.cmd.Process.Kill()
 	}
 	u.cmd = nil
-}
-
-func (u *UpstreamProcess) createCommand() *exec.Cmd {
-	command := fmt.Sprintf("deno task lume -s --port=%d", u.port)
-	cmd := exec.Command("sh", "-c", command)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = u.directory
-	return cmd
 }
 
 func getAvailablePort() (int, error) {

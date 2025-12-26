@@ -72,8 +72,10 @@ func (lume *Lume) Provision(ctx caddy.Context) error {
 // GetUpstreams implements reverseproxy.UpstreamSource.
 func (lume *Lume) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstream, error) {
 	if lume.process == nil {
-		lume.process = NewUpstreamProcess(lume.Directory, lume.Task)
+		location := fmt.Sprintf("%s://%s", r.Header.Get("X-Forwarded-Proto"), r.Header.Get("X-Forwarded-Host"))
+		lume.process = NewUpstreamProcess(lume.Directory, location)
 	}
+
 	lume.process.Start()
 
 	if lume.process.IsRunning() {
