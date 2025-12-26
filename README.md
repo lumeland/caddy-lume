@@ -1,7 +1,7 @@
 # Caddy module for Lume
 
 This is a module for Caddy to have a reverse proxy to Lume and LumeCMS.
-Configure the Caddyfile to this:
+Configure the Caddyfile like this:
 
 ```
 example.com {
@@ -11,7 +11,7 @@ example.com {
     }
 
     lb_retries 10
-		lb_try_interval 2s
+    lb_try_interval 2s
   }
 }
 ```
