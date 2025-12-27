@@ -1,4 +1,4 @@
-module lumeland/caddy-lume
+module github.com/lumeland/caddy-lume
 
 go 1.25.1
 
