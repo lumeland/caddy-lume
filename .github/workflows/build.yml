@@ -45,3 +45,9 @@ jobs:
         env:
           GOOS: linux
           GOARCH: amd64
+      - name: Upload release binaries
+        uses: alexellis/upload-assets@0.4.1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["./bin/*"]'
