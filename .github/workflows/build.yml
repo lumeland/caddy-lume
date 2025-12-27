@@ -24,22 +24,30 @@ jobs:
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
           xcaddy version
       - name: Build for macOS (AMD)
-        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-darwin-amd64
+        run: |
+          xcaddy build --with github.com/lumeland/caddy-lume=./ --output caddy-lume-darwin-amd64
+          tar -czvf bin/caddy-lume-darwin-amd64.tar.gz caddy-lume-darwin-amd64
         env:
           GOOS: darwin
           GOARCH: amd64
       - name: Build for macOS (ARM)
-        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-darwin-arm64
+        run: |
+          xcaddy build --with github.com/lumeland/caddy-lume=./ --output caddy-lume-darwin-arm64
+          tar -czvf bin/caddy-lume-darwin-arm64.tar.gz caddy-lume-darwin-arm64
         env:
           GOOS: darwin
           GOARCH: arm64
       - name: Build for Linux (AMD)
-        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-linux-amd64
+        run: |
+          xcaddy build --with github.com/lumeland/caddy-lume=./ --output caddy-lume-linux-amd64
+          tar -czvf bin/caddy-lume-linux-amd64.tar.gz caddy-lume-linux-amd64
         env:
           GOOS: linux
           GOARCH: amd64
       - name: Build for Linux (ARM)
-        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-linux-arm64
+        run: |
+          xcaddy build --with github.com/lumeland/caddy-lume=./ --output caddy-lume-linux-arm64
+          tar -czvf bin/caddy-lume-linux-arm64.tar.gz caddy-lume-linux-arm64
         env:
           GOOS: linux
           GOARCH: arm64
