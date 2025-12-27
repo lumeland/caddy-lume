@@ -1,0 +1,51 @@
+name: build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          check-latest: true
+          cache: true
+      - name: Install xcaddy
+        run: |
+          go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+          xcaddy version
+      - name: Build for macOS (AMD)
+        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-darwin-amd64
+        env:
+          GOOS: darwin
+          GOARCH: amd64
+      - name: Build for macOS (ARM)
+        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-darwin-arm64
+        env:
+          GOOS: darwin
+          GOARCH: arm64
+      - name: Build for Linux (AMD)
+        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-linux-amd64
+        env:
+          GOOS: linux
+          GOARCH: amd64
+      - name: Build for Linux (ARM)
+        run: xcaddy build --with github.com/lumeland/caddy-lume=./ --output bin/caddy-lume-linux-arm64
+        env:
+          GOOS: linux
+          GOARCH: arm64
+      - name: Upload release binaries
+        uses: alexellis/upload-assets@0.4.1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_paths: '["./bin/*"]'
