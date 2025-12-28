@@ -14,6 +14,7 @@ import (
 
 type UpstreamProcess struct {
 	cmd          *exec.Cmd
+	deno         string
 	directory    string
 	location     string
 	port         int
@@ -22,8 +23,9 @@ type UpstreamProcess struct {
 	mu           sync.Mutex
 }
 
-func NewUpstreamProcess(directory string, location string) *UpstreamProcess {
+func NewUpstreamProcess(deno string, directory string, location string) *UpstreamProcess {
 	return &UpstreamProcess{
+		deno:         deno,
 		directory:    directory,
 		location:     location,
 		idleTimeout:  time.Duration(time.Hour * 2),
@@ -52,20 +54,14 @@ func (u *UpstreamProcess) Start() error {
 		return nil
 	}
 
-	deno, err := exec.LookPath("deno")
-
-	if err != nil {
-		return err
-	}
-
 	// Run `deno install` to download the dependencies
-	caddy.Log().Named(CHANNEL).Info("Run 'deno install' to download dependencies: " + deno)
-	cmd := exec.Command(deno, "install")
+	caddy.Log().Named(CHANNEL).Info("Run 'deno install' to download dependencies")
+	cmd := exec.Command(u.deno, "install")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = u.directory
 	cmd.Env = os.Environ()
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		return err
 	}
@@ -81,7 +77,7 @@ func (u *UpstreamProcess) Start() error {
 
 	// Start the command
 	u.cmd = exec.Command(
-		deno,
+		u.deno,
 		"task",
 		"lume",
 		"--serve",

@@ -3,6 +3,7 @@ package lume
 import (
 	"fmt"
 	"net/http"
+	"os/exec"
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
@@ -17,6 +18,7 @@ func init() {
 
 type Lume struct {
 	Directory string `json:"directory,omitempty"`
+	Deno      string `json:"deno,omitempty"`
 	process   *UpstreamProcess
 }
 
@@ -39,6 +41,11 @@ func (lume *Lume) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				return d.ArgErr()
 			}
 			lume.Directory = d.Val()
+		case "deno":
+			if !d.NextArg() {
+				return d.ArgErr()
+			}
+			lume.Deno = d.Val()
 		default:
 			return d.Errf("Unknown subdirective: %s", d.Val())
 		}
@@ -53,6 +60,15 @@ func (lume *Lume) Validate() error {
 		return fmt.Errorf("directory is required")
 	}
 
+	if lume.Deno == "" {
+		deno, err := exec.LookPath("deno")
+
+		if err != nil {
+			return err
+		}
+		lume.Deno = deno
+	}
+
 	return nil
 }
 
@@ -63,11 +79,10 @@ func (lume *Lume) Provision(ctx caddy.Context) error {
 
 // GetUpstreams implements reverseproxy.UpstreamSource.
 func (lume *Lume) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstream, error) {
-	caddy.Log().Named(CHANNEL).Info("Get upstreams")
 	if lume.process == nil {
 		location := fmt.Sprintf("%s://%s", r.Header.Get("X-Forwarded-Proto"), r.Header.Get("X-Forwarded-Host"))
 		caddy.Log().Named(CHANNEL).Info("New Lume process for " + location)
-		lume.process = NewUpstreamProcess(lume.Directory, location)
+		lume.process = NewUpstreamProcess(lume.Deno, lume.Directory, location)
 	}
 
 	err := lume.process.Start()
