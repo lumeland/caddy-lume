@@ -15,7 +15,6 @@ func init() {
 
 type Lume struct {
 	Directory string `json:"directory,omitempty"`
-	Task      string `json:"task,omitempty"`
 	process   *UpstreamProcess
 }
 
@@ -38,11 +37,6 @@ func (lume *Lume) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				return d.ArgErr()
 			}
 			lume.Directory = d.Val()
-		case "task":
-			if !d.NextArg() {
-				return d.ArgErr()
-			}
-			lume.Task = d.Val()
 		default:
 			return d.Errf("Unknown subdirective: %s", d.Val())
 		}
@@ -55,10 +49,6 @@ func (lume *Lume) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 func (lume *Lume) Validate() error {
 	if lume.Directory == "" {
 		return fmt.Errorf("directory is required")
-	}
-
-	if lume.Task == "" {
-		lume.Task = "serve"
 	}
 
 	return nil
