@@ -5,8 +5,11 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"sync"
 	"time"
+
+	"github.com/caddyserver/caddy/v2"
 )
 
 type UpstreamProcess struct {
@@ -56,6 +59,7 @@ func (u *UpstreamProcess) Start() error {
 	}
 
 	// Run `deno install` to download the dependencies
+	caddy.Log().Named(CHANNEL).Info("Run 'deno install' to download dependencies: " + deno)
 	cmd := exec.Command(deno, "install")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -72,6 +76,7 @@ func (u *UpstreamProcess) Start() error {
 	if err != nil {
 		return err
 	}
+	caddy.Log().Named(CHANNEL).Info("Lume server assigned to port " + strconv.Itoa(port))
 	u.port = port
 
 	// Start the command
@@ -90,6 +95,7 @@ func (u *UpstreamProcess) Start() error {
 	u.cmd.Env = os.Environ()
 	u.cmd.Env = append(cmd.Env, "LUME_PROXIED=true")
 
+	caddy.Log().Named(CHANNEL).Info("Start Lume")
 	err = u.cmd.Start()
 	if err != nil {
 		return err
