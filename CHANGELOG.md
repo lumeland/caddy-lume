@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - 2025-12-29
-First version
+## [0.1.5] - 2025-12-29
+### Added
+- `idle_timeout` option.
 
-[0.1.0]: https://github.com/lumeland/caddy-lume/releases/tag/v0.1.0
+### Fixed
+- Improved the idle timeout watcher
+
+[0.1.5]: https://github.com/lumeland/caddy-lume/releases/tag/v0.1.5
