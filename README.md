@@ -16,9 +16,20 @@ example.com {
 }
 ```
 
-- In the first request, it starts Lume using the first available port running the command `deno task lume --serve --hostname=localhost --port={port} --location={public_url}`.
+- In the first request, it starts Lume using the first available port running
+  the command
+  `deno task lume --serve --hostname=localhost --port={port} --location={public_url}`.
 - After 2 hours of inactiviy, the process is closed.
 
 Code "inspired" by
 [cweagans/caddy_ondemand_upstreams](https://github.com/cweagans/caddy_ondemand_upstreams).
 Thanks Cameron Eagans!
+
+## Configuration
+
+- `directory`: Required. The directory of the Lume site to run
+  `deno task lume ...`.
+- `deno`: Optional. The deno binary path. If this is not set, the module
+  searches for the "deno" executable in the PATH.
+- `idle_timeout`: Optional. The duration that the process should continue
+  running if no traffic is received. By default is 2h

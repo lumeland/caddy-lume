@@ -23,12 +23,12 @@ type UpstreamProcess struct {
 	mu           sync.Mutex
 }
 
-func NewUpstreamProcess(deno string, directory string, location string) *UpstreamProcess {
+func NewUpstreamProcess(deno string, directory string, location string, idle_timeout time.Duration) *UpstreamProcess {
 	return &UpstreamProcess{
 		deno:         deno,
 		directory:    directory,
 		location:     location,
-		idleTimeout:  time.Duration(time.Hour * 2),
+		idleTimeout:  idle_timeout,
 		lastActivity: time.Now(),
 	}
 }
@@ -107,12 +107,12 @@ func (u *UpstreamProcess) Start() error {
 	// Watch for idle timeout.
 	go func() {
 		for {
-			time.Sleep(time.Second)
-
+			wait := time.Until(u.lastActivity.Add(u.idleTimeout))
+			time.Sleep(wait)
 			if u.lastActivity.Add(u.idleTimeout).After(time.Now()) {
 				continue
 			}
-
+			caddy.Log().Named(CHANNEL).Info("Idle timeout. Stop Lume process")
 			u.Stop()
 			break
 		}
