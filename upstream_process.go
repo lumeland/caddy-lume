@@ -91,7 +91,7 @@ func (u *UpstreamProcess) Start() error {
 	u.cmd.Env = os.Environ()
 	u.cmd.Env = append(cmd.Env, "LUME_PROXIED=true")
 
-	caddy.Log().Named(CHANNEL).Info("Start Lume")
+	caddy.Log().Named(CHANNEL).Info("Start Lume for " + u.location)
 	err = u.cmd.Start()
 	if err != nil {
 		return err
@@ -101,6 +101,7 @@ func (u *UpstreamProcess) Start() error {
 	// Wait to finish the process
 	go func() {
 		u.cmd.Wait()
+		caddy.Log().Named(CHANNEL).Info("Lume process finished for " + u.location)
 		u.cmd = nil
 	}()
 
@@ -112,7 +113,7 @@ func (u *UpstreamProcess) Start() error {
 			if u.lastActivity.Add(u.idleTimeout).After(time.Now()) {
 				continue
 			}
-			caddy.Log().Named(CHANNEL).Info("Idle timeout. Stop Lume process")
+			caddy.Log().Named(CHANNEL).Info("Idle timeout. Stop Lume process for " + u.location)
 			u.Stop()
 			break
 		}
@@ -133,10 +134,11 @@ func (u *UpstreamProcess) Stop() {
 	time.Sleep(time.Duration(time.Second))
 
 	if u.IsRunning() {
-		u.cmd.Process.Release()
 		u.cmd.Process.Kill()
 	}
+	u.cmd.Process.Release()
 	u.cmd = nil
+	caddy.Log().Named(CHANNEL).Info("Stopped Lume process for " + u.location)
 }
 
 func getAvailablePort() (int, error) {
