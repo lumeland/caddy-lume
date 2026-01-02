@@ -57,7 +57,7 @@ func (u *UpstreamProcess) Start() error {
 	}
 
 	// Run `deno install` to download the dependencies
-	caddy.Log().Named(CHANNEL).Info("Run 'deno install' to download dependencies")
+	caddy.Log().Named(CHANNEL).Info("Running 'deno install' to download dependencies")
 	cmd := exec.Command(u.deno, "install")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
