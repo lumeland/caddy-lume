@@ -90,9 +90,7 @@ func (u *UpstreamProcess) Start() error {
 	u.cmd.Stdout = os.Stdout
 	u.cmd.Stderr = os.Stderr
 	u.cmd.Dir = u.directory
-	u.cmd.Env = os.Environ()
-	u.cmd.Env = append(cmd.Env, "LUME_PROXIED=true")
-	u.cmd.Env = append(cmd.Env, "LUME_LOGS=WARNING")
+	u.cmd.Env = append(os.Environ(), "LUME_PROXIED=true", "LUME_LOGS=WARNING")
 
 	caddy.Log().Named(CHANNEL).Info("Start Lume for " + u.location)
 	err = u.cmd.Start()
