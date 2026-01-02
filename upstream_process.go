@@ -21,6 +21,7 @@ type UpstreamProcess struct {
 	idleTimeout  time.Duration
 	lastActivity time.Time
 	mu           sync.Mutex
+	running      bool
 }
 
 func NewUpstreamProcess(deno string, directory string, location string, idle_timeout time.Duration) *UpstreamProcess {
@@ -30,6 +31,7 @@ func NewUpstreamProcess(deno string, directory string, location string, idle_tim
 		location:     location,
 		idleTimeout:  idle_timeout,
 		lastActivity: time.Now(),
+		running:      false,
 	}
 }
 
@@ -39,7 +41,7 @@ func (u *UpstreamProcess) GetDial() string {
 }
 
 func (u *UpstreamProcess) IsRunning() bool {
-	return u.cmd != nil
+	return u.cmd != nil && u.running == true
 }
 
 func (u *UpstreamProcess) LogActivity() {
@@ -90,19 +92,21 @@ func (u *UpstreamProcess) Start() error {
 	u.cmd.Dir = u.directory
 	u.cmd.Env = os.Environ()
 	u.cmd.Env = append(cmd.Env, "LUME_PROXIED=true")
+	u.cmd.Env = append(cmd.Env, "LUME_LOGS=WARNING")
 
 	caddy.Log().Named(CHANNEL).Info("Start Lume for " + u.location)
 	err = u.cmd.Start()
 	if err != nil {
 		return err
 	}
+	u.running = true
 	u.LogActivity()
 
 	// Wait to finish the process
 	go func() {
 		u.cmd.Wait()
 		caddy.Log().Named(CHANNEL).Info("Lume process finished for " + u.location)
-		u.cmd = nil
+		u.running = false
 	}()
 
 	// Watch for idle timeout.
@@ -137,7 +141,7 @@ func (u *UpstreamProcess) Stop() {
 		u.cmd.Process.Kill()
 	}
 	u.cmd.Process.Release()
-	u.cmd = nil
+	u.running = false
 	caddy.Log().Named(CHANNEL).Info("Stopped Lume process for " + u.location)
 }
 
