@@ -96,11 +96,6 @@ func (lume *Lume) Validate() error {
 	return nil
 }
 
-// Provision implements caddy.Provisioner.
-func (lume *Lume) Provision(ctx caddy.Context) error {
-	return nil
-}
-
 // GetUpstreams implements reverseproxy.UpstreamSource.
 func (lume *Lume) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstream, error) {
 	if lume.process == nil {
@@ -139,7 +134,6 @@ func (lume *Lume) Cleanup() error {
 
 // Interface guards
 var (
-	_ caddy.Provisioner           = (*Lume)(nil)
 	_ caddy.Validator             = (*Lume)(nil)
 	_ caddyfile.Unmarshaler       = (*Lume)(nil)
 	_ reverseproxy.UpstreamSource = (*Lume)(nil)
