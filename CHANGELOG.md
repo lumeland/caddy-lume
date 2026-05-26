@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.9] - 2026-05-26
+### Fixed
+- Updated to Caddy 2.11.3.
+- Updated indirect dependencies.
+
 ## [0.1.8] - 2026-03-21
 ### Fixed
 - Updated to Caddy 2.11.2.
@@ -33,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 - Improved the idle timeout watcher
 
+[0.1.9]: https://github.com/lumeland/caddy-lume/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/lumeland/caddy-lume/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/lumeland/caddy-lume/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/lumeland/caddy-lume/compare/v0.1.5...v0.1.6
