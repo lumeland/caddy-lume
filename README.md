@@ -8,6 +8,7 @@ example.com {
   reverse_proxy {
     dynamic lume {
       directory "/path/to/your/lume/site"
+      deno_upgrade
     }
 
     lb_retries 10
@@ -33,3 +34,5 @@ Thanks Cameron Eagans!
   searches for the "deno" executable in the PATH.
 - `idle_timeout`: Optional. The duration that the process should continue
   running if no traffic is received. By default is 2h
+- `deno_upgrade`: Optional. Runs `deno upgrade` before starting the upstream
+  to upgrade Deno automatically to the latest version.

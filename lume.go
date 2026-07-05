@@ -25,6 +25,10 @@ type Lume struct {
 	// If this is not set, search for deno in the PATH
 	Deno string `json:"deno,omitempty"`
 
+	// Optional. To upgrade automatically Deno to the latest version
+	// Runs `deno upgrade` before starting the upstream
+	DenoUpgrade bool `json:"deno_upgrade,omitempty"`
+
 	// Optional. The duration that the process should continue running if no traffic is received
 	// By default is 2h
 	IdleTimeout caddy.Duration `json:"idle_timeout,omitempty"`
@@ -57,6 +61,8 @@ func (lume *Lume) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				return d.ArgErr()
 			}
 			lume.Deno = d.Val()
+		case "deno_upgrade":
+			lume.DenoUpgrade = true
 		case "idle_timeout":
 			if !d.NextArg() {
 				return d.ArgErr()
@@ -101,7 +107,7 @@ func (lume *Lume) GetUpstreams(r *http.Request) ([]*reverseproxy.Upstream, error
 	if lume.process == nil {
 		location := fmt.Sprintf("%s://%s", r.Header.Get("X-Forwarded-Proto"), r.Header.Get("X-Forwarded-Host"))
 		caddy.Log().Named(CHANNEL).Info("New Lume process for " + location)
-		lume.process = NewUpstreamProcess(lume.Deno, lume.Directory, location, time.Duration(lume.IdleTimeout))
+		lume.process = NewUpstreamProcess(lume.Deno, lume.Directory, location, time.Duration(lume.IdleTimeout), lume.DenoUpgrade)
 	}
 
 	err := lume.process.Start()

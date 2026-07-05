@@ -15,6 +15,7 @@ import (
 type UpstreamProcess struct {
 	cmd          *exec.Cmd
 	deno         string
+	denoUpgrade  bool
 	directory    string
 	location     string
 	port         int
@@ -24,9 +25,10 @@ type UpstreamProcess struct {
 	running      bool
 }
 
-func NewUpstreamProcess(deno string, directory string, location string, idle_timeout time.Duration) *UpstreamProcess {
+func NewUpstreamProcess(deno string, directory string, location string, idle_timeout time.Duration, deno_upgrade bool) *UpstreamProcess {
 	return &UpstreamProcess{
 		deno:         deno,
+		denoUpgrade:  deno_upgrade,
 		directory:    directory,
 		location:     location,
 		idleTimeout:  idle_timeout,
@@ -54,6 +56,20 @@ func (u *UpstreamProcess) Start() error {
 
 	if u.IsRunning() {
 		return nil
+	}
+
+	// Run `deno upgrade` to auto update Deno binary to the latest version
+	if u.denoUpgrade {
+		caddy.Log().Named(CHANNEL).Info("Running 'deno upgrade' to upgrade Deno")
+		cmd := exec.Command(u.deno, "upgrade")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Env = os.Environ()
+		err := cmd.Start()
+		if err != nil {
+			return err
+		}
+		cmd.Wait()
 	}
 
 	// Run `deno install` to download the dependencies
