@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [0.2.0] - 2026-11-27
 ### Changed
-- Moved to Lume 4, which uses Node instead Deno.
+- Moved to Lume 4, which uses Node instead of Deno.
 - Removed `deno` and `deno_ugrade` options.
+
+### Fixed
+- Updated dependencies.
 
 ## [0.1.10] - 2026-07-05
 ### Added
