@@ -8,7 +8,6 @@ example.com {
   reverse_proxy {
     dynamic lume {
       directory "/path/to/your/lume/site"
-      deno_upgrade
     }
 
     lb_retries 10
@@ -17,9 +16,7 @@ example.com {
 }
 ```
 
-- In the first request, it starts Lume using the first available port running
-  the command
-  `deno task lume --serve --hostname=localhost --port={port} --location={public_url}`.
+- In the first request, it starts Lume using the first available port.
 - After 2 hours of inactiviy, the process is closed.
 
 Code "inspired" by
@@ -30,9 +27,5 @@ Thanks Cameron Eagans!
 
 - `directory`: Required. The directory of the Lume site to run
   `deno task lume ...`.
-- `deno`: Optional. The deno binary path. If this is not set, the module
-  searches for the "deno" executable in the PATH.
 - `idle_timeout`: Optional. The duration that the process should continue
   running if no traffic is received. By default is 2h
-- `deno_upgrade`: Optional. Runs `deno upgrade` before starting the upstream
-  to upgrade Deno automatically to the latest version.

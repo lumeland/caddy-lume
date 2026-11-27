@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -14,8 +15,6 @@ import (
 
 type UpstreamProcess struct {
 	cmd          *exec.Cmd
-	deno         string
-	denoUpgrade  bool
 	directory    string
 	location     string
 	port         int
@@ -25,10 +24,8 @@ type UpstreamProcess struct {
 	running      bool
 }
 
-func NewUpstreamProcess(deno string, directory string, location string, idle_timeout time.Duration, deno_upgrade bool) *UpstreamProcess {
+func NewUpstreamProcess(directory string, location string, idle_timeout time.Duration) *UpstreamProcess {
 	return &UpstreamProcess{
-		deno:         deno,
-		denoUpgrade:  deno_upgrade,
 		directory:    directory,
 		location:     location,
 		idleTimeout:  idle_timeout,
@@ -58,23 +55,17 @@ func (u *UpstreamProcess) Start() error {
 		return nil
 	}
 
-	// Run `deno upgrade` to auto update Deno binary to the latest version
-	if u.denoUpgrade {
-		caddy.Log().Named(CHANNEL).Info("Running 'deno upgrade' to upgrade Deno")
-		cmd := exec.Command(u.deno, "upgrade")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Env = os.Environ()
-		err := cmd.Start()
-		if err != nil {
-			return err
-		}
-		cmd.Wait()
+	packageManager := getPackageManager(u.directory)
+	caddy.Log().Named(CHANNEL).Info("Install packages with " + packageManager)
+	var cmd *exec.Cmd
+	switch packageManager {
+	case "pnpm":
+		cmd = exec.Command("pnpm", "ci")
+	case "yarn":
+		cmd = exec.Command("yarn", "install", "--frozen-lockfile")
+	default:
+		cmd = exec.Command("npm", "ci")
 	}
-
-	// Run `deno install` to download the dependencies
-	caddy.Log().Named(CHANNEL).Info("Running 'deno install' to download dependencies")
-	cmd := exec.Command(u.deno, "install")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = u.directory
@@ -94,15 +85,14 @@ func (u *UpstreamProcess) Start() error {
 	u.port = port
 
 	// Start the command
-	u.cmd = exec.Command(
-		u.deno,
-		"task",
-		"lume",
-		"--serve",
-		"--hostname=localhost",
-		fmt.Sprintf("--port=%d", u.port),
-		fmt.Sprintf("--location=%s", u.location),
-	)
+	switch packageManager {
+	case "pnpm":
+		u.cmd = exec.Command("pnpm", "lume", "build", "--serve", "--hostname", "localhost", fmt.Sprintf("--port=%d", u.port), fmt.Sprintf("--location=%s", u.location))
+	case "yarn":
+		u.cmd = exec.Command("yarn", "lume", "build", "--serve", "--hostname", "localhost", fmt.Sprintf("--port=%d", u.port), fmt.Sprintf("--location=%s", u.location))
+	default:
+		u.cmd = exec.Command("npx", "lume", "build", "--serve", "--hostname", "localhost", fmt.Sprintf("--port=%d", u.port), fmt.Sprintf("--location=%s", u.location))
+	}
 	u.cmd.Stdout = os.Stdout
 	u.cmd.Stderr = os.Stderr
 	u.cmd.Dir = u.directory
@@ -174,4 +164,19 @@ func getAvailablePort() (int, error) {
 
 	defer l.Close()
 	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
+func getPackageManager(directory string) string {
+	if fileExists(path.Join(directory, "pnpm-lock.yaml")) {
+		return "pnpm"
+	}
+	if fileExists(path.Join(directory, "yarn.lock")) {
+		return "yarn"
+	}
+	return "npm"
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path);
+	return err == nil
 }
