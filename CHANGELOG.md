@@ -4,16 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.2.1] - 2026-11-27
-### Fixed
-- Build workflow.
-
 ## [0.2.0] - 2026-11-27
 ### Changed
 - Moved to Lume 4, which uses Node instead of Deno.
 - Removed `deno` and `deno_ugrade` options.
 
+### Removed
+- Mac builds.
+
 ### Fixed
+- Build workflow.
 - Updated dependencies.
 
 ## [0.1.10] - 2026-07-05
@@ -54,7 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 - Improved the idle timeout watcher
 
-[0.2.1]: https://github.com/lumeland/caddy-lume/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/lumeland/caddy-lume/compare/v0.1.10...v0.2.0
 [0.1.10]: https://github.com/lumeland/caddy-lume/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/lumeland/caddy-lume/compare/v0.1.8...v0.1.9
